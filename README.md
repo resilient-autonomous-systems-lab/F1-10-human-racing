@@ -15,10 +15,11 @@ The communication and software framework has been steuped
 Suggestions from Alpha testers:
  1. steering torque feedback, auto steering back to middle 
  2. trottle command has dead zone due to the friction of the tire, try to find the minimal throttle which can move the car physically in order to remove the dead zone.
- 3. model the real deceleration situation
- 4. add the middle lane tape   (Done)
- 5. get two another small monitors to show the right and left camera view,
- 6. turn on back camera view when move backward
+ 3. Display the speed value and other position infromation of the car on cockpit's monitor.
+ 4. model the real deceleration situation
+ 5. add the middle lane tape   (Done)
+ 6. get two another small monitors to show the right and left camera view,
+ 7. turn on back camera view when move backward
 
 ### User guide
 1.	If you don’t have VNC viewer, please download any VNC viewer on your computer 
