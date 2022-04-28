@@ -14,9 +14,9 @@ The communication and software framework has been steuped
 ### Alpha test
 Suggestions from Alpha testers:
  1. steering torque feedback, auto steering back to middle 
- 2. reduce throttle sensitiveness
+ 2. trottle command has dead zone due to the friction of the tire, try to find the minimal throttle which can move the car physically in order to remove the dead zone.
  3. model the real deceleration situation
- 4. add the middle lane tape
+ 4. add the middle lane tape   (Done)
  5. get two another small monitors to show the right and left camera view,
  6. turn on back camera view when move backward
 
