@@ -1,6 +1,6 @@
 # F1/10 human racing
 
-## Get Started
+### Get Started
 ```
 mkdir catkin_ws
 git clone https://github.com/resilient-autonomous-systems-lab/F1-10-human-racing.git src
@@ -13,6 +13,10 @@ catkin build
 source ~/catkin_ws/devel/setup.bash
 roslaunch racing_simulator simulator.launch
 ```
+
+### git token for raslab
+- username: fsudssAI
+- passcode: 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
 
 ### Software log
 The communication and software framework has been steuped
