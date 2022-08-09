@@ -1,0 +1,4 @@
+[submodule "ros-g29-force-feedback"]
+	path = ros-g29-force-feedback
+	url = https://github.com/fsudssAI/ros-g29-force-feedback.git
+	branch = ros1_version
