@@ -1,6 +1,6 @@
 # F1/10 human racing
 
-## Get Start
+## Get Started
 ```
 mkdir catkin_ws
 git clone https://github.com/resilient-autonomous-systems-lab/F1-10-human-racing.git src
