@@ -1,8 +1,19 @@
 # F1/10 human racing
 
-## Version 1.0
-- Time: 2022/04/14
-- Contact:  Yu (yz19b@fsu.edu)  Bolu (bolabiran@fsu.edu) 
+## Get Start
+```
+mkdir catkin_ws
+git clone https://github.com/resilient-autonomous-systems-lab/F1-10-human-racing.git src
+cd src
+git submodule update --init
+```
+```
+cd ..
+catkin build
+source ~/catkin_ws/devel/setup.bash
+roslaunch racing_simulator simulator.launch
+```
+
 ### Software log
 The communication and software framework has been steuped
 - subscribe joy commands from racing cockpit
