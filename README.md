@@ -1,12 +1,28 @@
 # F1/10 human racing
 
 ### Get Started
+1. Clone repo
 ```
 mkdir catkin_ws
 git clone https://github.com/resilient-autonomous-systems-lab/F1-10-human-racing.git src
 cd src
 git submodule update --init
 ```
+2. Install dependencies:
+- joy
+```
+sudo apt update
+sudo apt install ros-$ROS_DISTRO-joy*
+```
+- pacmod
+```
+sudo apt install apt-transport-https
+sudo sh -c 'echo "deb [trusted=yes] https://s3.amazonaws.com/autonomoustuff-repo/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/autonomoustuff-public.list'
+sudo apt update
+sudo apt install ros-$ROS_DISTRO-pacmod
+```
+
+3. Build and run packages
 ```
 cd ..
 catkin build
