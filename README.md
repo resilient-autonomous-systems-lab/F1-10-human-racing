@@ -27,7 +27,7 @@ sudo apt install ros-$ROS_DISTRO-pacmod
 cd ..
 catkin build
 source ~/catkin_ws/devel/setup.bash
-roslaunch racing_simulator simulator.launch
+roslaunch global_launch racing.launch
 ```
 
 ### git token for raslab
@@ -64,13 +64,13 @@ Suggestions from Alpha testers:
 
 MicroNole: 
 
-> IP: 192.168.50.22
+> IP: 192.168.2.13
 
 > Passcode: nvidia 
  
  Racing cockpit: 
 
-> IP: 192.168.50.201
+> IP: 192.168.2.19
 
 > Passcode: nvidia <br>
 
@@ -89,7 +89,7 @@ If you cannot access those computer through VNC, it is probably the IP problem. 
 5.	Open terminal in Racing cockpit computer, and type: <br>
 `sudo -s` <br>
 `nvidia` <br>
-`roslaunch racing_simulator simulator.launch` <br>
+`roslaunch global_launch racing.launch` <br>
 <img src="https://user-images.githubusercontent.com/36635562/163508312-832cb84a-f877-41f5-afd0-3614ed5c725f.png" width="500" />
 
 Once see the camera view, close it by clicking “x” to close the image window, then it will show a bigger window:
