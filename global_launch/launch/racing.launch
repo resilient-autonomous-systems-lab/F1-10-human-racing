@@ -3,7 +3,7 @@
 <launch>
   
   <!--- launch force feeback -->  
-  <include file="$(find ros-g29-force-feedback)/launch/g29_feedback.launch">
+  <include file="$(find g29_force_feedback)/launch/g29_feedback.launch">
   </include>
 
   <!--- launch racing simulator -->  
