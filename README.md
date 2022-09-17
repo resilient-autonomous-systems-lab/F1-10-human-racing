@@ -1,17 +1,33 @@
 # F1/10 human racing
 
 ### Get Started
+1. Clone repo
 ```
 mkdir catkin_ws
 git clone https://github.com/resilient-autonomous-systems-lab/F1-10-human-racing.git src
 cd src
 git submodule update --init
 ```
+2. Install dependencies:
+- joy
+```
+sudo apt update
+sudo apt install ros-$ROS_DISTRO-joy*
+```
+- pacmod
+```
+sudo apt install apt-transport-https
+sudo sh -c 'echo "deb [trusted=yes] https://s3.amazonaws.com/autonomoustuff-repo/ $(lsb_release -sc) main" > /etc/apt/sources.list.d/autonomoustuff-public.list'
+sudo apt update
+sudo apt install ros-$ROS_DISTRO-pacmod
+```
+
+3. Build and run packages
 ```
 cd ..
 catkin build
 source ~/catkin_ws/devel/setup.bash
-roslaunch racing_simulator simulator.launch
+roslaunch global_launch racing.launch
 ```
 
 ### git token for raslab
@@ -48,13 +64,13 @@ Suggestions from Alpha testers:
 
 MicroNole: 
 
-> IP: 192.168.50.22
+> IP: 192.168.2.13
 
 > Passcode: nvidia 
  
  Racing cockpit: 
 
-> IP: 192.168.50.201
+> IP: 192.168.2.19
 
 > Passcode: nvidia <br>
 
@@ -73,7 +89,7 @@ If you cannot access those computer through VNC, it is probably the IP problem. 
 5.	Open terminal in Racing cockpit computer, and type: <br>
 `sudo -s` <br>
 `nvidia` <br>
-`roslaunch racing_simulator simulator.launch` <br>
+`roslaunch global_launch racing.launch` <br>
 <img src="https://user-images.githubusercontent.com/36635562/163508312-832cb84a-f877-41f5-afd0-3614ed5c725f.png" width="500" />
 
 Once see the camera view, close it by clicking “x” to close the image window, then it will show a bigger window:

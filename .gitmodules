@@ -2,3 +2,6 @@
 	path = ros-g29-force-feedback
 	url = https://github.com/fsudssAI/ros-g29-force-feedback.git
 	branch = ros1_version
+[submodule "OpenCV-rtsp-server"]
+	path = OpenCV-rtsp-server
+	url = https://github.com/fsudssAI/OpenCV-rtsp-server.git
