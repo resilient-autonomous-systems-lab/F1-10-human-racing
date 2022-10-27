@@ -142,10 +142,10 @@ class racingNode(object):
             cam_pose = PoseStamped()
             cam_pose.header.stamp = rospy.Time.now()
             cam_pose.header.frame_id = 'remote racing'
-            cam_pose.pose.quaternion.x = self.front_cam
-            cam_pose.pose.quaternion.y = self.rear_cam
-            cam_pose.pose.quaternion.z = self.left_cam
-            cam_pose.pose.quaternion.w = self.right_cam
+            cam_pose.pose.orientation.x = self.front_cam
+            cam_pose.pose.orientation.y = self.rear_cam
+            cam_pose.pose.orientation.z = self.left_cam
+            cam_pose.pose.orientation.w = self.right_cam
             self.cam_pos_pub.publish(cam_pose)
 
             # self.rate.sleep()
