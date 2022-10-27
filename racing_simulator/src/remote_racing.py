@@ -139,7 +139,7 @@ class racingNode(object):
             
             
             # publish stream camera position
-            cam_pose = Vector3Stamped()
+            cam_pose = PoseStamped()
             cam_pose.header.stamp = rospy.Time.now()
             cam_pose.header.frame_id = 'remote racing'
             cam_pose.pose.quaternion.x = self.front_cam
