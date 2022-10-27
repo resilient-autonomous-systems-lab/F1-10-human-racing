@@ -120,20 +120,20 @@ class racingNode(object):
             '''
             
             # decide stream camera position
-            if self.steering > 0.1
+            if self.steering > 0.1:
                 self.left_cam = 1
                 self.right_cam = 0
-            else if self.steering < -0.1
+            elif self.steering < -0.1:
                 self.right_cam = 1
                 self.left_cam = 0
-            else
+            else:
                 self.right_cam = 0
                 self.left_cam = 0
             
-            if self.command[2] < 0
+            if self.command[2] < 0:
                 self.front_cam = 0
                 self.rear_cam = 1
-            else
+            else:
                 self.front_cam = 1
                 self.rear_cam = 0
             
