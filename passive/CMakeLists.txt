@@ -135,7 +135,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/passive.py
+#   src/${PROJECT_NAME}/src/passive.py
 # )
 
 ## Add cmake target dependencies of the library
