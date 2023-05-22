@@ -14,5 +14,5 @@
    Password : nvidia
 
 2. Run the following launchfile
-   `roslaunch passive_model passive.launch`
+   `roslaunch passive passive.launch`
 

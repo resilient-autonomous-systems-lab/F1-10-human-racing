@@ -9,10 +9,10 @@
       <param name="deadzone" value="0.05" type="double"/>    
     </node>
 
-    <node name="racing_simulator" pkg="racing_simulator" type="passive_wave.py" output="screen">
+    <node name="passive" pkg="passive" type="passive_wave.py" output="screen">
     </node>
      
-    <node pkg="racing_simulator"
+    <node pkg="passive"
                 type="RTSP_camera_streaming.sh" name="run_script"
                 output="screen"/>
     
