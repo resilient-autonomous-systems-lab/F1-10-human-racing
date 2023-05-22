@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.0.2)
-project(racing_simulator)
+project(passive)
 
 ## Compile as C++11, supported in ROS Kinetic and newer
 add_compile_options(-std=c++11)
@@ -117,7 +117,7 @@ generate_messages(
 catkin_package(
 CATKIN_DEPENDS joy pacmod roscpp rospy
 #  INCLUDE_DIRS include
-#  LIBRARIES racing_simulator
+#  LIBRARIES passive
 #  CATKIN_DEPENDS joy pacmod roscpp rospy std_msgs
 #  DEPENDS system_lib
 )
@@ -135,7 +135,7 @@ include_directories(
 
 ## Declare a C++ library
 # add_library(${PROJECT_NAME}
-#   src/${PROJECT_NAME}/racing_simulator.cpp
+#   src/${PROJECT_NAME}/passive.py
 # )
 
 ## Add cmake target dependencies of the library
@@ -210,7 +210,7 @@ include_directories(
 #############
 
 ## Add gtest based cpp test target and link libraries
-# catkin_add_gtest(${PROJECT_NAME}-test test/test_racing_simulator.cpp)
+# catkin_add_gtest(${PROJECT_NAME}-test test/test_passive.cpp)
 # if(TARGET ${PROJECT_NAME}-test)
 #   target_link_libraries(${PROJECT_NAME}-test ${PROJECT_NAME})
 # endif()
