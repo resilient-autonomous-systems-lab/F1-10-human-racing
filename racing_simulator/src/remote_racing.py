@@ -19,7 +19,7 @@ import math
 import rospy
 # from multimaster_udp.transport import UDPSubscriber
 
-from geometry_msgs.msg import Vector3Stamped
+from geometry_msgs.msg import Vector3Stamped, PoseStamped
 from sensor_msgs.msg import Joy, Image, CompressedImage
 #import ros_numpy
 #from cv_bridge import CvBridge, CvBridgeError
@@ -41,6 +41,8 @@ class racingNode(object):
 
         self.ctrl_pub = rospy.Publisher('/racing_cockpit/ctrl_cmd', Vector3Stamped, queue_size=10)
         self.ctrl_sub = rospy.Subscriber("/G29/joy", Joy, self.ctrl_callback, queue_size=10)
+        
+        self.cam_pos_pub = rospy.Publisher('/human_remote/camera_pos', PoseStamped, queue_size=1)
         #self.video_sub = rospy.Subscriber("/qcar/camera", Image, self.MicroNole_camera_callback, queue_size=1, buff_size=1920*1080*3)
         # self.video_sub_compressed = rospy.Subscriber("/qcar/compressed_camera", CompressedImage, self.compreessedIMG_callback, queue_size=1, buff_size=2*1920*1080*3)
         # self.video_sub_compressed = UDPSubscriber("/qcar/compressed_camera", CompressedImage, self.compreessedIMG_callback, queue_size=1)
@@ -51,6 +53,11 @@ class racingNode(object):
         self.button = np.zeros(18)
         self.command = np.zeros(3)
         self.throttle_scale, self.steering_scale = 0.2/2, math.pi/2
+        
+        self.front_cam = 1
+        self.rear_cam = 0
+        self.left_cam = 0
+        self.right_cam = 0
 
         #self.bridge = CvBridge()
 
@@ -111,6 +118,35 @@ class racingNode(object):
             cv2.imshow("Racing view", self.cv_image)
             cv2.waitKey(1)
             '''
+            
+            # decide stream camera position
+            if self.steering > 0.1:
+                self.left_cam = 1
+                self.right_cam = 0
+            elif self.steering < -0.1:
+                self.right_cam = 1
+                self.left_cam = 0
+            else:
+                self.right_cam = 0
+                self.left_cam = 0
+            
+            if self.command[2] < 0:
+                self.front_cam = 0
+                self.rear_cam = 1
+            else:
+                self.front_cam = 1
+                self.rear_cam = 0
+            
+            
+            # publish stream camera position
+            cam_pose = PoseStamped()
+            cam_pose.header.stamp = rospy.Time.now()
+            cam_pose.header.frame_id = 'remote racing'
+            cam_pose.pose.orientation.x = self.front_cam
+            cam_pose.pose.orientation.y = self.rear_cam
+            cam_pose.pose.orientation.z = self.left_cam
+            cam_pose.pose.orientation.w = self.right_cam
+            self.cam_pos_pub.publish(cam_pose)
 
             # self.rate.sleep()
 
