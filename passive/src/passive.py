@@ -74,7 +74,7 @@ class racingNode(object):
         self.force_feeback_calculation = 0.
 
     def force_calculation(self):
-        steer = self.steering
+        steer = float(self.command[0])
         diff = - steer
         if diff > 0 : dir=1
         else : dir =-1
@@ -168,7 +168,7 @@ class racingNode(object):
 
         print("Velocity:",str(self.velocity),"----->FF",str(self.force_feedback))
         self.force_calculation()
-        print("Forcefeedback to device:",str(self.force_feeback_calculation))
+        print("Forcefeedback to device:",str(self.force_feeback_calculation* 32767))
         self.evtdev.write(ecodes.EV_FF, ecodes.FF_AUTOCENTER, int(self.force_feeback_calculation* 32767))
 
     def publisher_joy(self):
