@@ -169,7 +169,7 @@ class racingNode(object):
         print("Velocity:",str(self.velocity),"----->FF",str(self.force_feedback))
         self.force_calculation()
         print("Forcefeedback to device:",str(self.force_feeback_calculation))
-        self.evtdev.write(ecodes.EV_FF, ecodes.FF_AUTOCENTER, self.force_feeback_calculation)
+        self.evtdev.write(ecodes.EV_FF, ecodes.FF_AUTOCENTER, int(self.force_feeback_calculation))
 
     def publisher_joy(self):
         self.command = (self.b/2)**0.5 * self.command
