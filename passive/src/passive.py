@@ -18,7 +18,7 @@ import numpy as np
 import math
 import rospy
 
-from geometry_msgs.msg import Vector3Stamped,Twist
+from geometry_msgs.msg import Vector3Stamped,Twist,PoseStamped
 from sensor_msgs.msg import Joy, Image, CompressedImage
 import cv2
 import pickle
@@ -47,11 +47,17 @@ class racingNode(object):
         self.ctrl_sub = rospy.Subscriber("/G29/joy", Joy, self.ctrl_callback, queue_size=10)
         self.adaptive_sub = rospy.Subscriber("/adaptive_response", Vector3Stamped, self.adaptive_callback, queue_size=10)
         self.delay = 0.0
+        self.cam_pos_pub = rospy.Publisher('/human_remote/camera_pos', PoseStamped, queue_size=1)
         
         self.axes = np.zeros(6)
         self.button = np.zeros(18)
         self.command = np.zeros(3)
         self.throttle_scale, self.steering_scale = 0.2/2, math.pi/2
+        
+        self.front_cam = 1
+        self.rear_cam = 0
+        self.left_cam = 0
+        self.right_cam = 0
 
         #passivity constant
         self.b=8
@@ -61,6 +67,25 @@ class racingNode(object):
 
         #force_feedback
         self.evtdev = InputDevice(device)
+        
+        self.ff_val=0
+
+        self.prev_steer = 0
+        self.force_feeback_calculation = 0.
+
+    def force_calculation(self):
+        steer = self.command[1]
+        diff = - steer
+        if diff > 0 : dir=1
+        else : dir =-1
+
+        autocenter_control_p = 0.5
+        autocenter_control_d = 1.5
+        wheel_resistance = 0.5
+        torque = (autocenter_control_p*diff)+(autocenter_control_d*(steer - self.prev_steer))-(wheel_resistance*steer)
+        self.force_feeback_calculation = min(abs(torque),1) * dir
+
+        self.prev_steer = steer
 
     def publish_data(self):
         while not rospy.is_shutdown():
@@ -99,9 +124,37 @@ class racingNode(object):
                 self.tval = -1.0 * self.command[1]
 
             val = (int(self.force_feedback)+2)/2 - 1
-            val =int(self.force_feedback * 32767)
-            print("Forcefeedback to device:",str(val))
-            self.evtdev.write(ecodes.EV_FF, ecodes.FF_AUTOCENTER, val)
+            self.ff_val =int(self.force_feedback * 32767)
+            
+            
+            # decide stream camera position
+            if self.steering > 0.1:
+                self.left_cam = 1
+                self.right_cam = 0
+            elif self.steering < -0.1:
+                self.right_cam = 1
+                self.left_cam = 0
+            else:
+                self.right_cam = 0
+                self.left_cam = 0
+            
+            if self.command[2] < 0:
+                self.front_cam = 0
+                self.rear_cam = 1
+            else:
+                self.front_cam = 1
+                self.rear_cam = 0
+            
+            
+            # publish stream camera position
+            cam_pose = PoseStamped()
+            cam_pose.header.stamp = rospy.Time.now()
+            cam_pose.header.frame_id = 'remote racing'
+            cam_pose.pose.orientation.x = self.front_cam
+            cam_pose.pose.orientation.y = self.rear_cam
+            cam_pose.pose.orientation.z = self.left_cam
+            cam_pose.pose.orientation.w = self.right_cam
+            self.cam_pos_pub.publish(cam_pose)
 
     def ctrl_callback(self, data):
         self.axes = data.axes
@@ -114,6 +167,9 @@ class racingNode(object):
         self.force_feedback = (self.command[0] +  data.vector.y) *(self.b/2)**0.5
 
         print("Velocity:",str(self.velocity),"----->FF",str(self.force_feedback))
+        self.force_calculation()
+        print("Forcefeedback to device:",str(self.force_feeback_calculation))
+        self.evtdev.write(ecodes.EV_FF, ecodes.FF_AUTOCENTER, self.force_feeback_calculation)
 
     def publisher_joy(self):
         self.command = (self.b/2)**0.5 * self.command
@@ -145,6 +201,5 @@ if __name__ == '__main__':
         # rospy.spin()
     except (rospy.ROSInterruptException, KeyboardInterrupt) as e:
         rospy.loginfo(f'Encountered {e}.')
-
 
 
