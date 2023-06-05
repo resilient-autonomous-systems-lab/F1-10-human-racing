@@ -74,7 +74,7 @@ class racingNode(object):
         self.force_feeback_calculation = 0.
 
     def force_calculation(self):
-        steer = self.command[1]
+        steer = self.steering
         diff = - steer
         if diff > 0 : dir=1
         else : dir =-1
