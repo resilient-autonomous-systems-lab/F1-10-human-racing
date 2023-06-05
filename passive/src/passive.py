@@ -26,9 +26,9 @@ import pickle
 import csv
 from std_msgs.msg       import Float64
 
-import evdev
-from evdev import ecodes, InputDevice
-device = evdev.list_devices()[0]
+# import evdev
+# from evdev import ecodes, InputDevice
+# device = evdev.list_devices()[0]
 
 
 
@@ -66,26 +66,26 @@ class racingNode(object):
         self.tval = 0.0
 
         #force_feedback
-        self.evtdev = InputDevice(device)
+    #     self.evtdev = InputDevice(device)
         
-        self.ff_val=0
+    #     self.ff_val=0
 
-        self.prev_steer = 0
-        self.force_feeback_calculation = 0.
+    #     self.prev_steer = 0
+    #     self.force_feeback_calculation = 0.
 
-    def force_calculation(self):
-        steer = float(self.command[0])
-        diff = - steer
-        if diff > 0 : dir=1
-        else : dir =-1
+    # def force_calculation(self):
+    #     steer = float(self.command[0])
+    #     diff = - steer
+    #     if diff > 0 : dir=1
+    #     else : dir =-1
 
-        autocenter_control_p = 0.5
-        autocenter_control_d = 1.5
-        wheel_resistance = 0.5
-        torque = (autocenter_control_p*diff)+(autocenter_control_d*(steer - self.prev_steer))-(wheel_resistance*steer)
-        self.force_feeback_calculation = min(abs(torque),1) * dir
+    #     autocenter_control_p = 0.5
+    #     autocenter_control_d = 1.5
+    #     wheel_resistance = 0.5
+    #     torque = (autocenter_control_p*diff)+(autocenter_control_d*(steer - self.prev_steer))-(wheel_resistance*steer)
+    #     self.force_feeback_calculation = min(abs(torque),1) * dir
 
-        self.prev_steer = steer
+    #     self.prev_steer = steer
 
     def publish_data(self):
         while not rospy.is_shutdown():
@@ -123,8 +123,8 @@ class racingNode(object):
             if self.command[2] < -0.5:
                 self.tval = -1.0 * self.command[1]
 
-            val = (int(self.force_feedback)+2)/2 - 1
-            self.ff_val =int(self.force_feedback * 32767)
+            # val = (int(self.force_feedback)+2)/2 - 1
+            # self.ff_val =int(self.force_feedback * 32767)
             
             
             # decide stream camera position
@@ -167,9 +167,9 @@ class racingNode(object):
         self.force_feedback = (self.command[0] +  data.vector.y) *(self.b/2)**0.5
 
         print("Velocity:",str(self.velocity),"----->FF",str(self.force_feedback))
-        self.force_calculation()
-        print("Forcefeedback to device:",str(self.force_feeback_calculation* 32767))
-        self.evtdev.write(ecodes.EV_FF, ecodes.FF_AUTOCENTER, int(self.force_feeback_calculation* 32767))
+        # self.force_calculation()
+        # print("Forcefeedback to device:",str(self.force_feeback_calculation* 32767))
+        # self.evtdev.write(ecodes.EV_FF, ecodes.FF_AUTOCENTER, int(self.force_feeback_calculation* 32767))
 
     def publisher_joy(self):
         self.command = (self.b/2)**0.5 * self.command
