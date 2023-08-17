@@ -26,12 +26,66 @@ import pickle
 import csv
 from std_msgs.msg       import Float64
 
+import math
+
 # import evdev
 # from evdev import ecodes, InputDevice
 # device = evdev.list_devices()[0]
 
+class carModel():
+    def __init__(self):
+        super().__init__()
+        self.wm = 0
+        self.ws = 0
+        self.vx = 0
+        self.vy = 0
+        self.theta1 = 4.5355
+        self.theta2 = 12985
+        self.theta3 = 191.17
+        self.theta4 = 85.018
+        self.theta5 = 696.47
+        self.theta6 = 370.3704
+        self.Cw = 1880.5
+        self.Cwd = 1000
+        self.J = 22.1185
+        self.rg = 9.49
+        self.m = 2.7
+        self.Rw = 0.024
+        self.L = 0.256
 
+    def update(self,alpha,delta):
+        A1 = -self.theta1 * self.wm
+        A2 = self.theta2 * alpha
+        wmd = A1 + A2
 
+        B1 = self.theta3 * self.L * delta * math.cos(delta) * self.vx / 2
+        B2 = self.theta3 * self.L * (1 - math.cos(delta)) * self.vy / 2
+        B3 = -self.L**2 [(self.theta3 *(1 + math.cos(delta)) / self.L )+ self.theta4] * self.wz / 2
+        B4 = self.Rw * self.L * self.theta4 * math.sin(delta) * self.wm / (2* self.rg)
+        wzd = B1 + B2 + B3 + B4
+
+        C1 = - self.vx * (2 * self.theta5 + self.theta6 * delta * math.sin(delta))
+        C2 = self.theta6 * math.sin(delta) * self.vx
+        C3 = -self.wz * self.vx
+        C4 = self.L * self.theta6 * math.sin(delta)* self.wz / 2
+        C5 = self.theta5 * self.Rw * math.sin(dela) * self.wm / self.rg
+        vxd = C1 + C2 + C3 + C4 + C5
+        
+        D1 = self.theta6 * delta * math.cos(delta) * self.vx 
+        D2 = -self.theta6 * (1 - math.cos(delta)) * self.vy
+        D3 = -self.wz * self.vx
+        D4 = self.L * [self.theta6 *( 1 - math.cos(delta)) - 2 * self.theta5 ] * self.wz
+        D5 = self.theta5 * self.Rw * math.sin(delta) * self.wm / self.rg
+        vyd = D1 + D2 + D3 + D4 + D5
+
+        self.wm = wmd
+        self.wz = wzd
+        self.vx = vxd
+        self.vy = vyd
+
+    def getVelocity(self):
+        return self.vx
+        
 class racingNode(object):
     """docstring for ClassName"""
 
