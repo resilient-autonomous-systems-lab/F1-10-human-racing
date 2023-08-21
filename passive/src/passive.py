@@ -83,8 +83,10 @@ class carModel():
         self.vx = vxd
         self.vy = vyd
 
-    def getVelocity(self):
         return self.vx
+
+    # def getVelocity(self):
+    #     return self.vx
         
 class racingNode(object):
     """docstring for ClassName"""
@@ -118,6 +120,16 @@ class racingNode(object):
         self.velocity=0.0
         self.force_feedback = 0.0
         self.tval = 0.0
+
+        #smith predictor
+        self.command_time = 0
+        self.feedback_time = 0
+        self.car = carModel()
+
+        self.model_vel = 0
+        self.command_frame_id = 0
+        self.delay = 1000 #in milliseconds
+        self.command_data={}
 
         #force_feedback
     #     self.evtdev = InputDevice(device)
@@ -182,25 +194,47 @@ class racingNode(object):
             
             
             # decide stream camera position
-            if self.steering > 0.1:
+            
+            
+            self.send_cam_pose(self.steering,self.command[2])
+            
+
+            current_vel = self.car.update(self.tval,self.command[0])
+
+            ms_command = self.command_time.secs * 1000 + self.command_time.nsecs / 1e8
+            self.command_data[ms_command]={"throttle":self.tval,"steering":self.command[0]}
+
+            # ms_feedback = self.feedback_time.secs * 1000 + self.feedback_time.nsecs / 1e8
+            ms =  ms_command - delay
+            if ms in self.command_data :
+                delay_data = self.command_data[ms]
+                delay_vel = self.car.update(delay_data['throttle'],delay_data['steering'])
+
+                del self.command_data[ms]
+            else :
+                delay_data = 0
+
+            self.model_vel = current_vel - delay_vel
+
+    def send_cam_pose(self,steer,direc):
+            if steer > 0.1:
                 self.left_cam = 1
                 self.right_cam = 0
-            elif self.steering < -0.1:
+            elif steer < -0.1:
                 self.right_cam = 1
                 self.left_cam = 0
             else:
                 self.right_cam = 0
                 self.left_cam = 0
             
-            if self.command[2] < 0:
+            if direc < 0:
                 self.front_cam = 0
                 self.rear_cam = 1
             else:
                 self.front_cam = 1
                 self.rear_cam = 0
-            
-            
-            # publish stream camera position
+
+        # publish stream camera position
             cam_pose = PoseStamped()
             cam_pose.header.stamp = rospy.Time.now()
             cam_pose.header.frame_id = 'remote racing'
@@ -213,12 +247,16 @@ class racingNode(object):
     def ctrl_callback(self, data):
         self.axes = data.axes
         self.button = data.buttons
+        self.command_time = rospy.Time.now()
         
     def adaptive_callback(self,data):
         # self.velocity = (self.b * self.tval +  data.vector.x) /2
         # self.force_feedback = (self.b * self.command[0] +  data.vector.y) /2
         self.velocity = (self.tval +  data.vector.x) *(self.b/2)**0.5
+        self.velocity = self.velocity + self.model_vel
         self.force_feedback = (self.command[0] +  data.vector.y) *(self.b/2)**0.5
+
+        self.feedback_time = data.header.stamp
 
         print("Velocity:",str(self.velocity),"----->FF",str(self.force_feedback))
         # self.force_calculation()
@@ -226,10 +264,11 @@ class racingNode(object):
         # self.evtdev.write(ecodes.EV_FF, ecodes.FF_AUTOCENTER, int(self.force_feeback_calculation* 32767))
 
     def publisher_joy(self):
+        self.command_frame_id = self.command_frame_id+1
         self.command = (self.b/2)**0.5 * self.command
         joy_command = Vector3Stamped()
         joy_command.header.stamp = rospy.Time.now()
-        joy_command.header.frame_id = 'remote racing'
+        joy_command.header.frame_id = self.command_frame_id
         joy_command.vector.x = float(self.command[0])
         joy_command.vector.y = float(self.command[1])
         joy_command.vector.z = float(self.command[2])
