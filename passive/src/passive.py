@@ -60,21 +60,21 @@ class carModel():
 
         B1 = self.theta3 * self.L * delta * math.cos(delta) * self.vx / 2
         B2 = self.theta3 * self.L * (1 - math.cos(delta)) * self.vy / 2
-        B3 = -self.L**2 [(self.theta3 *(1 + math.cos(delta)) / self.L )+ self.theta4] * self.wz / 2
+        B3 = -self.L**2 *((self.theta3 *(1 + math.cos(delta)) / self.L )+ self.theta4) * self.wz / 2
         B4 = self.Rw * self.L * self.theta4 * math.sin(delta) * self.wm / (2* self.rg)
         wzd = B1 + B2 + B3 + B4
 
         C1 = - self.vx * (2 * self.theta5 + self.theta6 * delta * math.sin(delta))
-        C2 = self.theta6 * math.sin(delta) * self.vx
-        C3 = -self.wz * self.vx
+        C2 = self.theta6 * math.sin(delta) * self.vy
+        C3 = -self.wz * self.vy
         C4 = self.L * self.theta6 * math.sin(delta)* self.wz / 2
-        C5 = self.theta5 * self.Rw * math.sin(dela) * self.wm / self.rg
+        C5 = self.theta5 * self.Rw * (1+math.cos(delta)) * self.wm / self.rg
         vxd = C1 + C2 + C3 + C4 + C5
         
         D1 = self.theta6 * delta * math.cos(delta) * self.vx 
-        D2 = -self.theta6 * (1 - math.cos(delta)) * self.vy
+        D2 = -self.theta6 * (1 + math.cos(delta)) * self.vy
         D3 = -self.wz * self.vx
-        D4 = self.L * [self.theta6 *( 1 - math.cos(delta)) - 2 * self.theta5 ] * self.wz
+        D4 = self.L * (self.theta6 *( 1 - math.cos(delta)) - 2 * self.theta5 ) * self.wz / 2
         D5 = self.theta5 * self.Rw * math.sin(delta) * self.wm / self.rg
         vyd = D1 + D2 + D3 + D4 + D5
 
