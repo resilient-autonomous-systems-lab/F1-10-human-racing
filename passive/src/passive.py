@@ -33,7 +33,7 @@ import math
 # device = evdev.list_devices()[0]
 
 class carModel():
-    def __init__(self):
+    def __init__(self,init_time):
         super().__init__()
         self.wm = 0
         self.ws = 0
@@ -52,11 +52,16 @@ class carModel():
         self.m = 2.7
         self.Rw = 0.024
         self.L = 0.256
+        self.prev_time = init_time
 
-    def update(self,alpha,delta):
+    def update(self,alpha,delta,current_time):
+        ts = current_time - self.prev_time
+        self.prev_time = current_time
+
         A1 = -self.theta1 * self.wm
         A2 = self.theta2 * alpha
         wmd = A1 + A2
+        wmd = self.wm + wmd*ts
 
         B1 = self.theta3 * self.L * delta * math.cos(delta) * self.vx / 2
         B2 = self.theta3 * self.L * (1 - math.cos(delta)) * self.vy / 2
@@ -70,8 +75,9 @@ class carModel():
         C4 = self.L * self.theta6 * math.sin(delta)* self.wz / 2
         C5 = self.theta5 * self.Rw * (1+math.cos(delta)) * self.wm / self.rg
         vxd = C1 + C2 + C3 + C4 + C5
-        
-        D1 = self.theta6 * delta * math.cos(delta) * self.vx 
+        vxd = self.vx + vxd*ts
+
+        D1 = self.theta6 * delta * math.cos(delta) * self.vx
         D2 = -self.theta6 * (1 + math.cos(delta)) * self.vy
         D3 = -self.wz * self.vx
         D4 = self.L * (self.theta6 *( 1 - math.cos(delta)) - 2 * self.theta5 ) * self.wz / 2
@@ -127,9 +133,12 @@ class racingNode(object):
         self.car = carModel()
 
         self.model_vel = 0
+        self.model_ff = 0
         self.command_frame_id = 0
         self.delay = 1000 #in milliseconds
         self.command_data={}
+
+        self.plot_data = np.array([[0.,0.,0.,0.,0.]]) #throttle, steering, smith_velocity, smith_feedback , time
 
         #force_feedback
     #     self.evtdev = InputDevice(device)
@@ -139,19 +148,19 @@ class racingNode(object):
     #     self.prev_steer = 0
     #     self.force_feeback_calculation = 0.
 
-    # def force_calculation(self):
-    #     steer = float(self.command[0])
-    #     diff = - steer
-    #     if diff > 0 : dir=1
-    #     else : dir =-1
+    def force_calculation(self):
+        steer = float(self.command[0])
+        diff = - steer
+        if diff > 0 : dir=1
+        else : dir =-1
 
-    #     autocenter_control_p = 0.5
-    #     autocenter_control_d = 1.5
-    #     wheel_resistance = 0.5
-    #     torque = (autocenter_control_p*diff)+(autocenter_control_d*(steer - self.prev_steer))-(wheel_resistance*steer)
-    #     self.force_feeback_calculation = min(abs(torque),1) * dir
+        autocenter_control_p = 0.5
+        autocenter_control_d = 1.5
+        wheel_resistance = 0.5
+        torque = (autocenter_control_p*diff)+(autocenter_control_d*(steer - self.prev_steer))-(wheel_resistance*steer)
+        self.force_feeback_calculation = min(abs(torque),1) * dir
 
-    #     self.prev_steer = steer
+        self.prev_steer = steer
 
     def publish_data(self):
         while not rospy.is_shutdown():
@@ -192,29 +201,25 @@ class racingNode(object):
             # val = (int(self.force_feedback)+2)/2 - 1
             # self.ff_val =int(self.force_feedback * 32767)
             
-            
             # decide stream camera position
-            
-            
             self.send_cam_pose(self.steering,self.command[2])
-            
 
-            current_vel = self.car.update(self.tval,self.command[0])
-
+            current_vel = self.car.update(self.tval,self.command[0],self.command_time)
             ms_command = self.command_time.secs * 1000 + self.command_time.nsecs / 1e8
             self.command_data[ms_command]={"throttle":self.tval,"steering":self.command[0]}
 
             # ms_feedback = self.feedback_time.secs * 1000 + self.feedback_time.nsecs / 1e8
-            ms =  ms_command - delay
+            ms =  ms_command - self.delay
             if ms in self.command_data :
                 delay_data = self.command_data[ms]
-                delay_vel = self.car.update(delay_data['throttle'],delay_data['steering'])
+                delay_vel = self.car.update(delay_data['throttle'],delay_data['steering'],self.command_time)
 
                 del self.command_data[ms]
             else :
                 delay_data = 0
 
             self.model_vel = current_vel - delay_vel
+            self.plot_data = np.concatenate(self.plot_data,np.array([[self.tval,self.command[0],self.model_vel,self.model_ff,self.command_time]]))
 
     def send_cam_pose(self,steer,direc):
             if steer > 0.1:
@@ -259,8 +264,8 @@ class racingNode(object):
         self.feedback_time = data.header.stamp
 
         print("Velocity:",str(self.velocity),"----->FF",str(self.force_feedback))
-        # self.force_calculation()
-        # print("Forcefeedback to device:",str(self.force_feeback_calculation* 32767))
+        self.force_calculation()
+        print("Forcefeedback to device:",str(self.force_feeback_calculation* 32767))
         # self.evtdev.write(ecodes.EV_FF, ecodes.FF_AUTOCENTER, int(self.force_feeback_calculation* 32767))
 
     def publisher_joy(self):
@@ -278,6 +283,9 @@ class racingNode(object):
     def shutdown(self):
         rospy.loginfo("Beginning shutdown routine...")
         
+        np.savetxt('plot_data.csv', self.plot_data, delimiter=',', fmt='% s')
+
+        rospy.loginfo("Data Saved")
         rospy.loginfo("Shutting down cleanly...")
         
     def timer_watcher(self, event):
