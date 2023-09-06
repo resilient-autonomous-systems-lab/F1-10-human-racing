@@ -93,7 +93,7 @@ class carModel():
         self.vx = vxd
         self.vy = vyd
 
-        return self.vx
+        return self.vx,ts
 
     # def getVelocity(self):
     #     return self.vx
@@ -142,7 +142,7 @@ class racingNode(object):
         self.delay = 1000 #in milliseconds
         self.command_data={}
 
-        self.plot_data = np.array([[0.,0.,0.,0.,0.]]) #throttle, steering, smith_velocity, smith_feedback , time
+        self.plot_data = np.array([[0.,0.,0.,0.,0.,0.]]) #throttle, steering, smith_velocity, smith_feedback , time
 
         #force_feedback
     #     self.evtdev = InputDevice(device)
@@ -208,7 +208,7 @@ class racingNode(object):
             # decide stream camera position
             self.send_cam_pose(self.steering,self.command[2])
 
-            current_vel = self.car.update(self.tval,self.command[0],self.command_time)
+            current_vel,_ = self.car.update(self.tval,self.command[0],self.command_time)
             ms_command = self.command_time.secs * 1000 + self.command_time.nsecs / 1e8
             self.command_data[ms_command]={"throttle":self.tval,"steering":self.command[0]}
 
@@ -216,16 +216,17 @@ class racingNode(object):
             ms =  ms_command - self.delay
             if ms in self.command_data :
                 delay_data = self.command_data[ms]
-                delay_vel = self.car.update(delay_data['throttle'],delay_data['steering'],self.command_time)
+                delay_vel,ts = self.car.update(delay_data['throttle'],delay_data['steering'],self.command_time)
 
                 del self.command_data[ms]
             else :
                 delay_data = 0
                 delay_vel = 0
+                ts = 0
 
             self.model_vel = current_vel - delay_vel
             
-            self.plot_data = np.concatenate((self.plot_data,np.array([[self.tval,self.command[0],self.model_vel,self.model_ff,self.command_time.to_sec()]])), axis=0)
+            self.plot_data = np.concatenate((self.plot_data,np.array([[self.tval,self.command[0],self.model_vel,self.model_ff,self.command_time.to_sec(),ts]])), axis=0)
 
     def send_cam_pose(self,steer,direc):
             if steer > 0.1:

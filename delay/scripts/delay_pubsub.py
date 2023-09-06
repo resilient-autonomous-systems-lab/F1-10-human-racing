@@ -17,19 +17,21 @@ class delaynode(object):
 
     def ctrl_callback(self,data):
         self.cockpit_publisher.publish(data)
+        print("received cockpit")
         time.sleep(self.delay)
     
     def ff_callback(self,data):
         self.feedback_publisher.publish(data)
+        print("received ff")
         time.sleep(self.delay)
 
     def shutdown(self):
         rospy.loginfo("Beginning shutdown routine...")
-            rospy.loginfo("Shutting down cleanly...")
+        rospy.loginfo("Shutting down cleanly...")
         
 if __name__ == '__main__':
     rospy.init_node('delaynode')
-    racing = delaynode(0.5)
+    racing = delaynode(0.0)
     rospy.on_shutdown(racing.shutdown)
 
     try:
