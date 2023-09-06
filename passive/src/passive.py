@@ -36,7 +36,7 @@ class carModel():
     def __init__(self,init_time):
         super().__init__()
         self.wm = 0
-        self.ws = 0
+        self.wz = 0
         self.vx = 0
         self.vy = 0
         self.theta1 = 4.5355
@@ -56,6 +56,8 @@ class carModel():
 
     def update(self,alpha,delta,current_time):
         ts = current_time - self.prev_time
+        ts = float(ts.to_sec()) 
+        print("TS:",ts)
         self.prev_time = current_time
 
         A1 = -self.theta1 * self.wm
@@ -68,6 +70,7 @@ class carModel():
         B3 = -self.L**2 *((self.theta3 *(1 + math.cos(delta)) / self.L )+ self.theta4) * self.wz / 2
         B4 = self.Rw * self.L * self.theta4 * math.sin(delta) * self.wm / (2* self.rg)
         wzd = B1 + B2 + B3 + B4
+        wzd = self.wz + wzd*ts
 
         C1 = - self.vx * (2 * self.theta5 + self.theta6 * delta * math.sin(delta))
         C2 = self.theta6 * math.sin(delta) * self.vy
@@ -83,6 +86,7 @@ class carModel():
         D4 = self.L * (self.theta6 *( 1 - math.cos(delta)) - 2 * self.theta5 ) * self.wz / 2
         D5 = self.theta5 * self.Rw * math.sin(delta) * self.wm / self.rg
         vyd = D1 + D2 + D3 + D4 + D5
+        vyd = self.vy + vyd*ts
 
         self.wm = wmd
         self.wz = wzd
@@ -128,9 +132,9 @@ class racingNode(object):
         self.tval = 0.0
 
         #smith predictor
-        self.command_time = 0
+        self.command_time = rospy.Time.now()
         self.feedback_time = 0
-        self.car = carModel()
+        self.car = carModel(self.command_time)
 
         self.model_vel = 0
         self.model_ff = 0
@@ -217,9 +221,11 @@ class racingNode(object):
                 del self.command_data[ms]
             else :
                 delay_data = 0
+                delay_vel = 0
 
             self.model_vel = current_vel - delay_vel
-            self.plot_data = np.concatenate(self.plot_data,np.array([[self.tval,self.command[0],self.model_vel,self.model_ff,self.command_time]]))
+            
+            self.plot_data = np.concatenate((self.plot_data,np.array([[self.tval,self.command[0],self.model_vel,self.model_ff,self.command_time.to_sec()]])), axis=0)
 
     def send_cam_pose(self,steer,direc):
             if steer > 0.1:
@@ -273,7 +279,7 @@ class racingNode(object):
         self.command = (self.b/2)**0.5 * self.command
         joy_command = Vector3Stamped()
         joy_command.header.stamp = rospy.Time.now()
-        joy_command.header.frame_id = self.command_frame_id
+        joy_command.header.frame_id = str(self.command_frame_id)
         joy_command.vector.x = float(self.command[0])
         joy_command.vector.y = float(self.command[1])
         joy_command.vector.z = float(self.command[2])
