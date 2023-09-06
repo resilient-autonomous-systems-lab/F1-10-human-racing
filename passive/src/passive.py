@@ -166,6 +166,11 @@ class racingNode(object):
 
         self.prev_steer = steer
 
+    def update_plotdata(self,arr):
+        last = self.plot_data[-1]
+        if not(np.array_equal(last,arr)):
+            self.plot_data = np.concatenate((self.plot_data,arr), axis=0)
+            
     def publish_data(self):
         while not rospy.is_shutdown():
             # all racing cockpit joystick command
@@ -210,23 +215,19 @@ class racingNode(object):
 
             current_vel,_ = self.car.update(self.tval,self.command[0],self.command_time)
             ms_command = self.command_time.secs * 1000 + self.command_time.nsecs / 1e8
-            self.command_data[ms_command]={"throttle":self.tval,"steering":self.command[0]}
+            self.command_data[ms_command]={"throttle":self.tval,"steering":self.command[0],"current_vel":current_vel}
 
             # ms_feedback = self.feedback_time.secs * 1000 + self.feedback_time.nsecs / 1e8
             ms =  ms_command - self.delay
             if ms in self.command_data :
-                delay_data = self.command_data[ms]
-                delay_vel,ts = self.car.update(delay_data['throttle'],delay_data['steering'],self.command_time)
-
+                delay_vel = self.command_data[ms]['current_vel']
                 del self.command_data[ms]
             else :
-                delay_data = 0
                 delay_vel = 0
-                ts = 0
 
             self.model_vel = current_vel - delay_vel
+            self.update_plotdata(np.array([[self.tval,self.command[0],self.model_vel,self.model_ff,self.command_time.to_sec(),ts]]))
             
-            self.plot_data = np.concatenate((self.plot_data,np.array([[self.tval,self.command[0],self.model_vel,self.model_ff,self.command_time.to_sec(),ts]])), axis=0)
 
     def send_cam_pose(self,steer,direc):
             if steer > 0.1:
