@@ -78,8 +78,8 @@ class carNode():
     
     def publish_velocity(self):
         state = JointState()
-        state.header.time = self.subtime
-        state.velociy = self.vx
+        state.header.stamp = self.subtime
+        state.velocity = self.vx
         self.velocity_publisher.publish(state)
 
     def ctrl_callback(self,data):
@@ -89,12 +89,12 @@ class carNode():
             self.alpha = data.vector.y
         if data.vector.z < -0.5:
             self.alpha = -1.0 * data.vector.y
-        self.subtime = data.header.time
+        self.subtime = data.header.stamp
 
 if __name__ == '__main__':
     rospy.init_node('carnode')
-    car = carNode()
-    rospy.on_shutdown(racing.shutdown)
+    car = carNode(rospy.Time.now())
+    #rospy.on_shutdown(car.shutdown)
 
     try:
         car.update()
