@@ -19,7 +19,7 @@ import math
 import rospy
 
 from geometry_msgs.msg import Vector3Stamped,Twist,PoseStamped
-from sensor_msgs.msg import Joy, Image, CompressedImage
+from sensor_msgs.msg import Joy, Image, CompressedImage, JointState
 import cv2
 import pickle
    
@@ -32,71 +32,6 @@ import math
 # from evdev import ecodes, InputDevice
 # device = evdev.list_devices()[0]
 
-class carModel():
-    def __init__(self,init_time):
-        super().__init__()
-        self.wm = 0
-        self.wz = 0
-        self.vx = 0
-        self.vy = 0
-        self.theta1 = 4.5355
-        self.theta2 = 12985
-        self.theta3 = 191.17
-        self.theta4 = 85.018
-        self.theta5 = 696.47
-        self.theta6 = 370.3704
-        self.Cw = 1880.5
-        self.Cwd = 1000
-        self.J = 22.1185
-        self.rg = 9.49
-        self.m = 2.7
-        self.Rw = 0.024
-        self.L = 0.256
-        self.prev_time = init_time
-
-    def update(self,alpha,delta,current_time):
-        ts = current_time - self.prev_time
-        ts = float(ts.to_sec()) 
-        print("TS:",ts)
-        self.prev_time = current_time
-
-        A1 = -self.theta1 * self.wm
-        A2 = self.theta2 * alpha
-        wmd = A1 + A2
-        wmd = self.wm + wmd*ts
-
-        B1 = self.theta3 * self.L * delta * math.cos(delta) * self.vx / 2
-        B2 = self.theta3 * self.L * (1 - math.cos(delta)) * self.vy / 2
-        B3 = -self.L**2 *((self.theta3 *(1 + math.cos(delta)) / self.L )+ self.theta4) * self.wz / 2
-        B4 = self.Rw * self.L * self.theta4 * math.sin(delta) * self.wm / (2* self.rg)
-        wzd = B1 + B2 + B3 + B4
-        wzd = self.wz + wzd*ts
-
-        C1 = - self.vx * (2 * self.theta5 + self.theta6 * delta * math.sin(delta))
-        C2 = self.theta6 * math.sin(delta) * self.vy
-        C3 = -self.wz * self.vy
-        C4 = self.L * self.theta6 * math.sin(delta)* self.wz / 2
-        C5 = self.theta5 * self.Rw * (1+math.cos(delta)) * self.wm / self.rg
-        vxd = C1 + C2 + C3 + C4 + C5
-        vxd = self.vx + vxd*ts
-
-        D1 = self.theta6 * delta * math.cos(delta) * self.vx
-        D2 = -self.theta6 * (1 + math.cos(delta)) * self.vy
-        D3 = -self.wz * self.vx
-        D4 = self.L * (self.theta6 *( 1 - math.cos(delta)) - 2 * self.theta5 ) * self.wz / 2
-        D5 = self.theta5 * self.Rw * math.sin(delta) * self.wm / self.rg
-        vyd = D1 + D2 + D3 + D4 + D5
-        vyd = self.vy + vyd*ts
-
-        self.wm = wmd
-        self.wz = wzd
-        self.vx = vxd
-        self.vy = vyd
-
-        return self.vx,ts
-
-    # def getVelocity(self):
-    #     return self.vx
         
 class racingNode(object):
     """docstring for ClassName"""
@@ -112,6 +47,7 @@ class racingNode(object):
         self.ctrl_pub = rospy.Publisher('/delay/racing_cockpit/ctrl_cmd', Vector3Stamped, queue_size=10)
         self.ctrl_sub = rospy.Subscriber("/G29/joy", Joy, self.ctrl_callback, queue_size=10)
         self.adaptive_sub = rospy.Subscriber("/adaptive_response", Vector3Stamped, self.adaptive_callback, queue_size=10)
+        self.adaptive_sub = rospy.Subscriber("/model/velocity", JointState, self.model_velocity_callback, queue_size=10)
         self.delay = 0.0
         self.cam_pos_pub = rospy.Publisher('/human_remote/camera_pos', PoseStamped, queue_size=1)
         
@@ -134,12 +70,11 @@ class racingNode(object):
         #smith predictor
         self.command_time = rospy.Time.now()
         self.feedback_time = 0
-        self.car = carModel(self.command_time)
-
         self.model_vel = 0
         self.model_ff = 0
         self.command_frame_id = 0
         self.delay = 1000 #in milliseconds
+        self.model_time = rospy.Time.now()
         self.command_data={}
 
         self.plot_data = np.array([[0.,0.,0.,0.,0.,0.]]) #throttle, steering, smith_velocity, smith_feedback , time
@@ -151,6 +86,10 @@ class racingNode(object):
 
     #     self.prev_steer = 0
     #     self.force_feeback_calculation = 0.
+
+    def model_velocity_callback(self,data):
+        self.model_ff = data.velocity
+        self.model_time = data.header.time
 
     def force_calculation(self):
         steer = float(self.command[0])
@@ -213,8 +152,8 @@ class racingNode(object):
             # decide stream camera position
             self.send_cam_pose(self.steering,self.command[2])
 
-            current_vel,_ = self.car.update(self.tval,self.command[0],self.command_time)
-            ms_command = self.command_time.secs * 1000 + self.command_time.nsecs / 1e8
+            current_vel = self.model_vel
+            ms_command = self.model_time.secs * 1000 + self.model_time.nsecs / 1e8
             self.command_data[ms_command]={"throttle":self.tval,"steering":self.command[0],"current_vel":current_vel}
 
             # ms_feedback = self.feedback_time.secs * 1000 + self.feedback_time.nsecs / 1e8
@@ -225,8 +164,8 @@ class racingNode(object):
             else :
                 delay_vel = 0
 
-            self.model_vel = current_vel - delay_vel
-            self.update_plotdata(np.array([[self.tval,self.command[0],self.model_vel,self.model_ff,self.command_time.to_sec(),ts]]))
+            diff_vel = current_vel - delay_vel
+            self.update_plotdata(np.array([[self.tval,self.command[0],diff_vel,self.model_ff,self.command_time.to_sec(),ts]]))
             
 
     def send_cam_pose(self,steer,direc):
@@ -280,7 +219,7 @@ class racingNode(object):
         self.command_frame_id = self.command_frame_id+1
         self.command = (self.b/2)**0.5 * self.command
         joy_command = Vector3Stamped()
-        joy_command.header.stamp = rospy.Time.now()
+        joy_command.header.time = rospy.Time.now()
         joy_command.header.frame_id = str(self.command_frame_id)
         joy_command.vector.x = float(self.command[0])
         joy_command.vector.y = float(self.command[1])
