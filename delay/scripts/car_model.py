@@ -97,7 +97,8 @@ if __name__ == '__main__':
     #rospy.on_shutdown(car.shutdown)
 
     try:
-        car.update()
+        while True:
+            car.update()
         # rospy.spin()
     except (rospy.ROSInterruptException, KeyboardInterrupt) as e:
         rospy.loginfo(f'Encountered {e}.')

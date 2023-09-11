@@ -219,7 +219,7 @@ class racingNode(object):
         self.command_frame_id = self.command_frame_id+1
         self.command = (self.b/2)**0.5 * self.command
         joy_command = Vector3Stamped()
-        joy_command.header.time = rospy.Time.now()
+        joy_command.header.stamp = rospy.Time.now()
         joy_command.header.frame_id = str(self.command_frame_id)
         joy_command.vector.x = float(self.command[0])
         joy_command.vector.y = float(self.command[1])
