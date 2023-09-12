@@ -62,6 +62,8 @@ class racingNode(object):
         #self.cv_image = np.zeros((self.imageHeight,self.imageWidth,3), np.uint8)
 
         self.adaptive_sub = rospy.Subscriber("/adaptive_response", Vector3Stamped, self.adaptive_callback, queue_size=10)
+        self.velocity = 0
+        self.force_feedback = 0
 
 
     def update_plotdata(self,arr):
@@ -70,17 +72,10 @@ class racingNode(object):
             self.plot_data = np.concatenate((self.plot_data,arr), axis=0)
 
     def adaptive_callback(self,data):
-        velocity = data.vector.x
-        force_feedback = data.vector.y
+        self.velocity = data.vector.x
+        self.force_feedback = data.vector.y
         feedback_time = data.header.stamp
-        tval = 0.0
-        if self.command[2] > 0.5:
-            tval = self.command[1]
-        if self.command[2] < -0.5:
-            tval = -1.0 * self.command[1]
-        ms_command = feedback_time.secs * 1000 + feedback_time.nsecs / 1e8
-        self.update_plotdata(np.array([[tval,self.command[0],velocity,force_feedback,str(ms_command),0]]))
-       
+        
     def publish_data(self):
         while not rospy.is_shutdown():
             # all racing cockpit joystick command
@@ -124,6 +119,16 @@ class racingNode(object):
             if self.gearshift_left_b==1 or self.gearshift_middle_b==1 or self.gearshift_right_b==1:
                 self.command[2] = -1
             self.publisher_joy()
+
+            tval = 0.0
+            if self.command[2] > 0.5:
+                tval = self.command[1]
+            if self.command[2] < -0.5:
+                tval = -1.0 * self.command[1]
+            feedback_time = rospy.Time.now()
+            ms_command = feedback_time.secs * 1000 + feedback_time.nsecs / 1e8
+            self.update_plotdata(np.array([[tval,self.command[0],velocity,force_feedback,str(ms_command),0]]))
+       
             
             '''
             # subscribe the camera view
