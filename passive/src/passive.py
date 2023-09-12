@@ -73,7 +73,7 @@ class racingNode(object):
         self.model_vel = 0
         self.model_ff = 0
         self.command_frame_id = 0
-        self.delay = 1000 #in milliseconds
+        self.delay = 0 #in milliseconds
         self.model_time = rospy.Time.now()
         self.command_data={}
 
@@ -164,7 +164,8 @@ class racingNode(object):
             else :
                 delay_vel = 0
 
-            diff_vel = current_vel - delay_vel
+            diff_vel = current_vel - delay_vel + self.velocity
+            self.update_plotdata(np.array([[self.tval,self.command[0],diff_vel,self.force_feedback,str(ms_command),0]]))
             
             
 
@@ -205,7 +206,6 @@ class racingNode(object):
         # self.velocity = (self.b * self.tval +  data.vector.x) /2
         # self.force_feedback = (self.b * self.command[0] +  data.vector.y) /2
         self.velocity = (self.tval +  data.vector.x) *(self.b/2)**0.5
-        self.velocity = self.velocity + self.model_vel
         
         self.force_feedback = (self.command[0] +  data.vector.y) *(self.b/2)**0.5
 
@@ -215,7 +215,7 @@ class racingNode(object):
         self.force_calculation()
         print("Forcefeedback to device:",str(self.force_feeback_calculation* 32767))
         ms_command = self.feedback_time.secs * 1000 + self.feedback_time.nsecs / 1e8
-        self.update_plotdata(np.array([[self.tval,self.command[0],self.velocity,self.force_feedback,str(ms_command),0]]))
+        
         # self.evtdev.write(ecodes.EV_FF, ecodes.FF_AUTOCENTER, int(self.force_feeback_calculation* 32767))
 
     def publisher_joy(self):

@@ -16,14 +16,16 @@ class delaynode(object):
         self.feedback_publisher = rospy.Publisher("/adaptive_response",  Vector3Stamped, queue_size=10)
 
     def ctrl_callback(self,data):
-        self.cockpit_publisher.publish(data)
-        print("received cockpit")
-        time.sleep(self.delay)
+    	time.sleep(self.delay)
+    	self.cockpit_publisher.publish(data)
+    	print("received cockpit")
+        
     
     def ff_callback(self,data):
-        self.feedback_publisher.publish(data)
-        print("received ff")
-        time.sleep(self.delay)
+    	time.sleep(self.delay)
+    	self.feedback_publisher.publish(data)
+    	print("received ff")
+        #time.sleep(self.delay)
 
     def shutdown(self):
         rospy.loginfo("Beginning shutdown routine...")
@@ -31,7 +33,7 @@ class delaynode(object):
         
 if __name__ == '__main__':
     rospy.init_node('delaynode')
-    racing = delaynode(1.0)
+    racing = delaynode(0.0)
     rospy.on_shutdown(racing.shutdown)
 
     try:
