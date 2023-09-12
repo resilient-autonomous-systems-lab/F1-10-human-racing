@@ -165,7 +165,7 @@ class racingNode(object):
                 delay_vel = 0
 
             diff_vel = current_vel - delay_vel
-            self.update_plotdata(np.array([[self.tval,self.command[0],diff_vel,self.model_ff,str(ms_command),0]]))
+            
             
 
     def send_cam_pose(self,steer,direc):
@@ -206,6 +206,7 @@ class racingNode(object):
         # self.force_feedback = (self.b * self.command[0] +  data.vector.y) /2
         self.velocity = (self.tval +  data.vector.x) *(self.b/2)**0.5
         self.velocity = self.velocity + self.model_vel
+        
         self.force_feedback = (self.command[0] +  data.vector.y) *(self.b/2)**0.5
 
         self.feedback_time = data.header.stamp
@@ -213,6 +214,8 @@ class racingNode(object):
         print("Velocity:",str(self.velocity),"----->FF",str(self.force_feedback))
         self.force_calculation()
         print("Forcefeedback to device:",str(self.force_feeback_calculation* 32767))
+        ms_command = self.feedback_time.secs * 1000 + self.feedback_time.nsecs / 1e8
+        self.update_plotdata(np.array([[self.tval,self.command[0],self.velocity,self.force_feedback,str(ms_command),0]]))
         # self.evtdev.write(ecodes.EV_FF, ecodes.FF_AUTOCENTER, int(self.force_feeback_calculation* 32767))
 
     def publisher_joy(self):
