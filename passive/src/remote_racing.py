@@ -70,18 +70,16 @@ class racingNode(object):
             self.plot_data = np.concatenate((self.plot_data,arr), axis=0)
 
     def adaptive_callback(self,data):
-        self.velocity = (self.tval +  data.vector.x) *(self.b/2)**0.5
-        self.velocity = self.velocity + self.model_vel
-        
-        self.force_feedback = (self.command[0] +  data.vector.y) *(self.b/2)**0.5
-
-        self.feedback_time = data.header.stamp
-
-        print("Velocity:",str(self.velocity),"----->FF",str(self.force_feedback))
-        self.force_calculation()
-        print("Forcefeedback to device:",str(self.force_feeback_calculation* 32767))
-        ms_command = self.feedback_time.secs * 1000 + self.feedback_time.nsecs / 1e8
-        self.update_plotdata(np.array([[self.tval,self.command[0],self.velocity,self.force_feedback,str(ms_command),0]]))
+        velocity = data.vector.x
+        force_feedback = data.vector.y
+        feedback_time = data.header.stamp
+        tval = 0.0
+        if self.command[2] > 0.5:
+            tval = self.command[1]
+        if self.command[2] < -0.5:
+            tval = -1.0 * self.command[1]
+        ms_command = feedback_time.secs * 1000 + feedback_time.nsecs / 1e8
+        self.update_plotdata(np.array([[tval,self.command[0],velocity,force_feedback,str(ms_command),0]]))
        
     def publish_data(self):
         while not rospy.is_shutdown():
