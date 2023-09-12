@@ -88,8 +88,8 @@ class racingNode(object):
     #     self.force_feeback_calculation = 0.
 
     def model_velocity_callback(self,data):
-        self.model_ff = data.velocity
-        self.model_time = data.header.time
+        self.model_vel = data.velocity[0]
+        self.model_time = data.header.stamp
 
     def force_calculation(self):
         steer = float(self.command[0])
@@ -165,7 +165,7 @@ class racingNode(object):
                 delay_vel = 0
 
             diff_vel = current_vel - delay_vel
-            self.update_plotdata(np.array([[self.tval,self.command[0],diff_vel,self.model_ff,self.command_time.to_sec(),ts]]))
+            self.update_plotdata(np.array([[self.tval,self.command[0],diff_vel,self.model_ff,str(ms_command),0]]))
             
 
     def send_cam_pose(self,steer,direc):

@@ -79,7 +79,7 @@ class carNode():
     def publish_velocity(self):
         state = JointState()
         state.header.stamp = self.subtime
-        state.velocity = self.vx
+        state.velocity = [self.vx]
         self.velocity_publisher.publish(state)
 
     def ctrl_callback(self,data):
