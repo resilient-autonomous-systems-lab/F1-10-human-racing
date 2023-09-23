@@ -33,7 +33,7 @@ class delaynode(object):
         
 if __name__ == '__main__':
     rospy.init_node('delaynode')
-    racing = delaynode(0.0)
+    racing = delaynode(0.5)
     rospy.on_shutdown(racing.shutdown)
 
     try:

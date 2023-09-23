@@ -127,7 +127,7 @@ class racingNode(object):
                 tval = -1.0 * self.command[1]
             feedback_time = rospy.Time.now()
             ms_command = feedback_time.secs * 1000 + feedback_time.nsecs / 1e8
-            self.update_plotdata(np.array([[tval,self.command[0],velocity,force_feedback,str(ms_command),0]]))
+            self.update_plotdata(np.array([[tval,self.command[0],self.velocity,self.force_feedback,str(ms_command),0]]))
        
             
             '''
@@ -144,6 +144,7 @@ class racingNode(object):
     def ctrl_callback(self, data):
         self.axes = data.axes
         self.button = data.buttons
+        print(data)
     '''
     def MicroNole_camera_callback(self,data):
         # self.cv_image = ros_numpy.numpify(data)
@@ -170,12 +171,14 @@ class racingNode(object):
         joy_command.vector.x = float(self.command[0])
         joy_command.vector.y = float(self.command[1])
         joy_command.vector.z = float(self.command[2])
+        time.sleep(0.1)
         self.ctrl_pub.publish(joy_command)
 
     def shutdown(self):
         rospy.loginfo("Beginning shutdown routine...")
         
         rospy.loginfo("Shutting down cleanly...")
+        np.savetxt('plot_data.csv', self.plot_data, delimiter=',', fmt='% s')
         
     def timer_watcher(self, event):
         rospy.loginfo(f"Delay: {self.delay}")

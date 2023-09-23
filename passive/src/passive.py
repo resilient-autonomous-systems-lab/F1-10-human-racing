@@ -44,7 +44,7 @@ class racingNode(object):
         self.sample_time = 1.0 / self.publish_rate  # s (default = 0.001)
         self.rate = rospy.Rate(self.publish_rate)
 
-        self.ctrl_pub = rospy.Publisher('/delay/racing_cockpit/ctrl_cmd', Vector3Stamped, queue_size=10)
+        self.ctrl_pub = rospy.Publisher('/racing_cockpit/ctrl_cmd', Vector3Stamped, queue_size=10)
         self.ctrl_sub = rospy.Subscriber("/G29/joy", Joy, self.ctrl_callback, queue_size=10)
         self.adaptive_sub = rospy.Subscriber("/adaptive_response", Vector3Stamped, self.adaptive_callback, queue_size=10)
         self.adaptive_sub = rospy.Subscriber("/model/velocity", JointState, self.model_velocity_callback, queue_size=10)
@@ -73,7 +73,7 @@ class racingNode(object):
         self.model_vel = 0
         self.model_ff = 0
         self.command_frame_id = 0
-        self.delay = 0 #in milliseconds
+        self.delay = 1000 #in milliseconds
         self.model_time = rospy.Time.now()
         self.command_data={}
 
@@ -227,7 +227,7 @@ class racingNode(object):
         joy_command.vector.x = float(self.command[0])
         joy_command.vector.y = float(self.command[1])
         joy_command.vector.z = float(self.command[2])
-        # time.sleep(0.5)
+        time.sleep(1)
         self.ctrl_pub.publish(joy_command)
 
     def shutdown(self):

@@ -27,8 +27,8 @@ class carNode():
         self.prev_time = init_time
         self.alpha = 0
         self.delta = 0
-        self.subtime = 0
-        self.cockpit_subscribe = rospy.Subscriber("/delay/racing_cockpit/ctrl_cmd",  Vector3Stamped, self.ctrl_callback, queue_size=10)
+        self.subtime = rospy.Time.now()
+        self.cockpit_subscribe = rospy.Subscriber("/racing_cockpit/ctrl_cmd",  Vector3Stamped, self.ctrl_callback, queue_size=10)
         self.velocity_publisher = rospy.Publisher("/model/velocity",  JointState, queue_size=10)
 
     def update(self):
@@ -80,6 +80,7 @@ class carNode():
         state = JointState()
         state.header.stamp = self.subtime
         state.velocity = [self.vx]
+        print(self.subtime,"-",type(self.subtime))
         self.velocity_publisher.publish(state)
 
     def ctrl_callback(self,data):
