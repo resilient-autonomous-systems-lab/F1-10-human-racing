@@ -66,6 +66,7 @@ class racingNode(object):
         self.velocity=0.0
         self.force_feedback = 0.0
         self.tval = 0.0
+        self.prev_steer = 0.0
 
         #smith predictor
         self.command_time = rospy.Time.now()
@@ -165,7 +166,7 @@ class racingNode(object):
                 delay_vel = 0
 
             diff_vel = current_vel - delay_vel + self.velocity
-            self.update_plotdata(np.array([[self.tval,self.command[0],diff_vel,self.force_feedback,str(ms_command),0]]))
+            #self.update_plotdata(np.array([[self.tval,self.command[0],diff_vel,self.force_feedback,str(ms_command),0]]))
             
             
 
@@ -215,6 +216,7 @@ class racingNode(object):
         self.force_calculation()
         print("Forcefeedback to device:",str(self.force_feeback_calculation* 32767))
         ms_command = self.feedback_time.secs * 1000 + self.feedback_time.nsecs / 1e8
+        self.update_plotdata(np.array([[self.tval,self.command[0],self.velocity,self.force_feedback,str(ms_command),0]]))
         
         # self.evtdev.write(ecodes.EV_FF, ecodes.FF_AUTOCENTER, int(self.force_feeback_calculation* 32767))
 
@@ -227,7 +229,7 @@ class racingNode(object):
         joy_command.vector.x = float(self.command[0])
         joy_command.vector.y = float(self.command[1])
         joy_command.vector.z = float(self.command[2])
-        time.sleep(1)
+        time.sleep(2)
         self.ctrl_pub.publish(joy_command)
 
     def shutdown(self):

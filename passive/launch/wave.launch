@@ -9,10 +9,9 @@
       <param name="deadzone" value="0.05" type="double"/>    
     </node>
 
-    <node name="passive" pkg="passive" type="passive.py" output="screen">
+    <node name="passive" pkg="passive" type="wave.py" output="screen">
     </node>
-     
-    
+
     
  
   </group>

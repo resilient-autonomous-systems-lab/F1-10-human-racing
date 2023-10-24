@@ -65,6 +65,7 @@ class racingNode(object):
         self.velocity=0.0
         self.force_feedback = 0.0
         self.tval = 0.0
+        self.prev_steer = 0.0
 
 
         self.plot_data = np.array([[0.,0.,0.,0.,0.,0.]]) #throttle, steering, smith_velocity, smith_feedback , time
@@ -188,7 +189,7 @@ class racingNode(object):
         self.force_calculation()
         print("Forcefeedback to device:",str(self.force_feeback_calculation* 32767))
         ms_command = data.header.stamp.secs * 1000 + data.header.stamp.nsecs / 1e8
-        self.update_plotdata(np.array([[self.tval,self.command[0],self.force_feedback,self.force_feeback_calculation* 32767,str(ms_command),0]]))
+        self.update_plotdata(np.array([[self.tval,self.command[0],self.velocity,self.force_feeback_calculation,str(ms_command),0]]))
         
         # self.evtdev.write(ecodes.EV_FF, ecodes.FF_AUTOCENTER, int(self.force_feeback_calculation* 32767))
 
